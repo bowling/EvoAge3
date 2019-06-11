@@ -1,10 +1,9 @@
-/* Socket and IO imports */
+
 import java.io.*;
 import java.net.*;
+import javax.net.ssl.HttpsURLConnection;
 
 /* Encryption Imports */
-import javax.crypto.*;
-import java.util.Base64;
 import java.security.*;
 import java.nio.charset.StandardCharsets;
 
@@ -30,20 +29,19 @@ public class LoginFrame {
 	private JFrame frmEvonyAgeIii;
 	private JTextField JTFUserName;
 	private JPasswordField pfPassword;
-	public JPasswordField pwConfirmPassword;
+	private JPasswordField pwConfirmPassword;
 	public JRadioButton rdbtnLogin;
 	public JRadioButton rdbtnCreateAccount;
 	private JLabel lblNewLabel;
 	private JLabel lblConnectionStatus;
 
-
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
+
 		EventQueue.invokeLater(new Runnable() {
-			String serverAddress = "142.162.21.9";
-			int serverPort = 5432;
+
 
 			/* Run the Application */
 			public void run() {
@@ -51,29 +49,15 @@ public class LoginFrame {
 					LoginFrame window = new LoginFrame();
 					window.frmEvonyAgeIii.setVisible(true);
 					Image icon = Toolkit.getDefaultToolkit().getImage("C:\\Users\\Michael\\Desktop\\Icon.jpg");
-					window.frmEvonyAgeIii.setIconImage(icon);
-					/*
-					try {
-						Socket clientSocket = new Socket(serverAddress, serverPort);
-						OutputStream outToServer = clientSocket.getOutputStream();
-						DataOutputStream outData = new DataOutputStream(outToServer);
-						
-						
-						
-					}
-					catch(IOException e){
-						
-					}
-					*/
-					
-				} catch (Exception e) {
+					window.frmEvonyAgeIii.setIconImage(icon);					
+				} 
+				catch (Exception e) {	
 					e.printStackTrace();
 				}
 			}
 		});
 	}
-
-	/**
+	 /*
 	 * Create the application.
 	 */
 	public LoginFrame() {
@@ -163,31 +147,66 @@ public class LoginFrame {
 		});
 		
 		btnLoginCreate.addActionListener(new ActionListener() {
+			String serverAddress = "142.162.21.9";
+			int serverPort = 3332;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				/* Hashing each password (SHA3 256) */
+				/* Hashing each password (SHA3 512) */
 				String password1= new String(pfPassword.getPassword());
 				String password2 = new String(pwConfirmPassword.getPassword());
 				
 				/* Password Hashing */
 				String pw1Hashed = encryptData(password1);
 				String pw2Hashed = encryptData(password2);
-				password1 = "NULL";
-				password2 = "NULL";
 				
-				lblNewLabel.setText(pw1Hashed);
-				if(rdbtnCreateAccount.isSelected() == true) {
-					if(pw1Hashed.equals(pw2Hashed)) {
-						//Open Connections
-						/* Create User */
+				/* Email */
+				String email = JTFUserName.getText();
+				
+				/* Communication Variable Declaration */
+				Socket clientSocket = null;
+				BufferedInputStream bis = null;
+				
+				
+				try {
+					File authType = new File("authentication.sql");
+					BufferedWriter writer = new BufferedWriter(new FileWriter(authType));
+					writer.write("SELECT COUNT(*) FROM loginTable WHERE username='" + email + "' and passwordHash='" + pw1Hashed + "';");
+					int size = (int)authType.length();
+					writer.close();
+					
+					lblNewLabel.setText(pw1Hashed);
+					if(rdbtnCreateAccount.isSelected() == true) {
+						if(pw1Hashed.equals(pw2Hashed)) {
+							//Open Connections
+							/* Create User */						
+						}
+					}
+					else if(rdbtnLogin.isSelected() == true) {
+						/* Send Login Request to server */
 						lblNewLabel.setText(pw1Hashed);
-						
+
+				        try{
+				            clientSocket = new Socket("localhost", 3332);
+				            byte[] bArray = new byte[(int) authType.length()];
+				            bis = new BufferedInputStream(new FileInputStream(authType));
+				            bis.read(bArray, 0, bArray.length);
+				            OutputStream outputStream = clientSocket.getOutputStream();
+				            outputStream.write(bArray, 0, bArray.length);
+				            outputStream.flush();
+				            outputStream.close();
+				            clientSocket.close();
+				        } catch (Exception excep) {
+							System.out.println("Unknown Exception Occurred");
+				        }
+							
 					}
 				}
-				else if(rdbtnLogin.isSelected() == true) {
-					/* Send Login Request to server */
-					lblNewLabel.setText(pw1Hashed);
+				catch(IOException ioEx) {
+					System.out.println("File failed");
 				}
+				
+				password1 = "NULL";
+				password2 = "NULL";
 			}
 		});
 		
@@ -207,6 +226,7 @@ public class LoginFrame {
 		}
 		
 	}
+	
 	/* Credit to baeldung - https://www.baeldung.com/sha-256-hashing-java */
 	public static String bytesToHex(byte[] hash) {
 	    StringBuffer hexString = new StringBuffer();
