@@ -170,7 +170,7 @@ public class LoginFrame {
 				try {
 					File authType = new File("authentication.sql");
 					BufferedWriter writer = new BufferedWriter(new FileWriter(authType));
-					writer.write("SELECT COUNT(*) FROM loginTable WHERE username='" + email + "' and passwordHash='" + pw1Hashed + "';");
+					writer.write("SELECT COUNT(*) FROM logintable WHERE username='" + email + "' and passwordHash='" + pw1Hashed + "';");
 					int size = (int)authType.length();
 					writer.close();
 					
@@ -186,7 +186,7 @@ public class LoginFrame {
 						lblNewLabel.setText(pw1Hashed);
 
 				        try{
-				            clientSocket = new Socket("localhost", 3332);
+				            clientSocket = new Socket(serverAddress, serverPort);
 				            byte[] bArray = new byte[(int) authType.length()];
 				            bis = new BufferedInputStream(new FileInputStream(authType));
 				            bis.read(bArray, 0, bArray.length);
@@ -205,8 +205,10 @@ public class LoginFrame {
 					System.out.println("File failed");
 				}
 				
-				password1 = "NULL";
-				password2 = "NULL";
+				password1 = null;
+				password2 = null;
+				pw1Hashed = null;
+				pw2Hashed = null;
 			}
 		});
 		
