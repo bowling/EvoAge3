@@ -4,8 +4,6 @@ import java.util.Date;
 import java.sql.*; 
 import java.util.Scanner;
 
-/* Server login system. I have not updated the program to connect to mySQL yet. */
-
 public class Server extends Thread {
 
     public static final int PORT = 3332;
@@ -50,7 +48,7 @@ public class Server extends Thread {
 			Class.forName("com.mysql.jdbc.Driver");
 		}
 		catch(ClassNotFoundException e){
-			System.out.println("Class not found...");
+			System.out.println("Class not found...").newInstance(); // Throws error here.
 			return;
 		}
 		try{
@@ -64,7 +62,7 @@ public class Server extends Thread {
 			ResultSet rs = stmt.executeQuery(query);
 			
 			if(rs.getInt(1) == 1){
-				System.out.println("Authentication Success");
+				System.out.println("Authentication Success"); // Throws Error here.
 				
 				//Send update reply to client
 				
