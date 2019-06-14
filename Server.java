@@ -3,6 +3,8 @@ import java.net.*;
 import java.util.Date;
 import java.sql.*; 
 import java.util.Scanner;
+import java.sql.Driver;
+/* Server login system for EvoA3 */
 
 public class Server extends Thread {
 
@@ -10,8 +12,9 @@ public class Server extends Thread {
     public static final int BUFFER_SIZE = 10;
 	Scanner scan = null;
 
-	//Creating server
+	//Creating server  
     public void run() {
+		System.out.println("Server started successfully");
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
             while (true) {
@@ -45,24 +48,19 @@ public class Server extends Thread {
 		/* Connect to mySQL DB and send file (prepared statement inside SQL file) */
 		/* Do NOT close to Socket! */
 		try{
-			Class.forName("com.mysql.jdbc.Driver");
-		}
-		catch(ClassNotFoundException e){
-			System.out.println("Class not found...").newInstance(); // Throws error here.
-			return;
-		}
-		try{
-			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/evonydb","GIVE USERNAME","GIVE PASSWORD").newInstance();
-			System.out.println("Here.");
+			System.out.println("Starting New Connection!");
+			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/evonydb","root","<removed>");
+			System.out.println("Connection established to DB!");
 			Statement stmt = conn.createStatement();
 			File f = new File("authenticationReceived.sql");
 			
+			scan = new Scanner(f);
 			String query = scan.nextLine();
 			System.out.println(query);
 			ResultSet rs = stmt.executeQuery(query);
 			
 			if(rs.getInt(1) == 1){
-				System.out.println("Authentication Success"); // Throws Error here.
+				System.out.println("Authentication Success");
 				
 				//Send update reply to client
 				
@@ -76,6 +74,7 @@ public class Server extends Thread {
 		}
 		catch(SQLException sqlExce){
 			System.out.println("SQL Exception Occured."); // Write to logfile.
+			sqlExce.printStackTrace();
 			return;
 		}
 		
@@ -87,7 +86,7 @@ public class Server extends Thread {
 		Date date2 = new Date();
 		long time2 = date.getTime();
 		Timestamp ts2 = new Timestamp(time2);
-		System.out.println("Authentication Complete: " + ts2);
+		System.out.println("Authentication Complete: " + ts2 + "\n\n");
     }
 
     public static void main(String[] args) {
